@@ -8,7 +8,7 @@ miro.onReady(() => {
         title: 'widget counter',
         svgIcon: icon24,
         onClick: () => {
-          miro.board.ui.openLeftSidebar('immersive_miro/sidebar.html')
+          miro.board.ui.openLeftSidebar('./sidebar.html')
         },
       },
     },

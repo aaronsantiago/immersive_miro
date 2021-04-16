@@ -1,12 +1,35 @@
-function showStatistics(selection) {
+let savedSelections = [];
+let selection = null;
+
+async function saveSelection() {
+  // When we save, we want the full data available from the API
+  // not just what is returned from the selection updated system
+  selection = await miro.board.selection.get();
+  selection.name = "MyGroup";
+  savedSelections.push(selection);
+  updatePanel(selection);
+}
+
+function updatePanel(sel) {
+  selection = sel;
   clear()
-  const statByType = calcByType(selection)
-  getContainer().appendChild(createStatTable('by Type', 'Looks like the selection is empty.', statByType))
+  if (sel.length > 0) {
+    const statView = document.createElement('div')
+    statView.className = 'stat-list__table'
+    let itemView = document.createElement('div')
+    itemView.className = 'stat-list__item';
+    itemView.innerHTML = 
+      `<span class="stat-list__item-name">${sel.length} elements</span>` +
+      `<button class="stat-list__item-value miro-btn miro-btn--primary miro-btn--small" onclick="saveSelection();">save</button>`
+    statView.appendChild(itemView)
+    getContainer().appendChild(statView)
+  }
+  createSavedGroupsDiv('There are no saved groups.', savedSelections);
 }
 
 function clear() {
   const elements = getContainer().getElementsByClassName('stat-list__table')
-  for (let i = 0; i < elements.length; i++) {
+  for (let i = elements.length - 1; i >= 0; i--) {
     elements.item(i).remove()
   }
 }
@@ -15,50 +38,40 @@ function getContainer() {
   return document.getElementById('stat-container')
 }
 
-function createStatTable(title, emptyText, data) {
+function createSavedGroupsDiv(emptyText, data) {
   const statView = document.createElement('div')
   statView.className = 'stat-list__table'
+  getContainer().appendChild(statView);
 
-  const titleView = document.createElement('div')
-  titleView.className = 'stat-list__title'
-  titleView.innerHTML = `<span>${title}</span>`
-  statView.appendChild(titleView)
-
-  if (data.size === 0) {
+  if (data.length === 0) {
     const emptyView = document.createElement('div')
     emptyView.className = 'stat-list__empty'
     emptyView.innerText = emptyText
     statView.appendChild(emptyView)
   } else {
-    data.forEach((value, key) => {
+    for (let item of data) {
       let itemView = document.createElement('div')
+      let randId = "" + Math.random() + "-" + Math.random();
       itemView.className = 'stat-list__item'
-      itemView.innerHTML =
-        `<span class="stat-list__item-name">${key.toLowerCase()}</span>` +
-        `<span class="stat-list__item-value">${value}</span>`
-      statView.appendChild(itemView)
-    })
+      itemView.innerHTML = `
+      <div class="miro-input-group miro-input-group--medium">
+          <input type="text" class="miro-input miro-input--primary" value="${item.name}" placeholder="Selection Name">
+          <button id="${randId}" class="miro-btn miro-btn--primary">Spawn</button>
+      </div>`;
+      statView.appendChild(itemView);
+      document.getElementById(randId).onclick = function() {
+        console.log(item);
+        miro.board.widgets.create(item);
+      };
+    }
   }
-  return statView
+  return statView;
 }
 
-function calcByType(widgets) {
-  return countBy(widgets, (a) => a.type)
-}
-
-function countBy(list, keyGetter) {
-  const map = new Map()
-  list.forEach((item) => {
-    const key = keyGetter(item)
-    const count = map.get(key)
-    map.set(key, !count ? 1 : count + 1)
-  })
-  return new Map([...map.entries()].sort((a, b) => b[1] - a[1]))
-}
 
 miro.onReady(() => {
   miro.addListener('SELECTION_UPDATED', (e) => {
-    showStatistics(e.data)
+    updatePanel(e.data)
   })
-  miro.board.selection.get().then(showStatistics)
+  miro.board.selection.get().then(updatePanel)
 })
