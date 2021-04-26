@@ -21,6 +21,18 @@ select {
   font-family: OpenSans, Arial, Helvetica, sans-serif;
 }
 
+.groupName {
+  width: 100%;
+  margin-bottom: 5px;
+}
+
+.miro-btn--small {
+  min-width: 0px;
+}
+.miro-btn:not(.ng-hide) + .miro-btn--small:not(.miro-btn--pull-right) {
+    margin-left: 0px;
+}
+
 .sidebar__content {
   display: flex;
   flex-grow: 1;
@@ -33,6 +45,7 @@ select {
 
 .stat-list {
   width: 340px;
+  overflow: auto;
 }
 
 .stat-list .stat-list__header {

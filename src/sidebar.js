@@ -27,8 +27,8 @@ function updatePanel(sel) {
     itemView.innerHTML = 
       `<span class="stat-list__item-name">${sel.widgets.length} elements</span>` +
       `<button class="stat-list__item-value miro-btn miro-btn--primary miro-btn--small" onclick="saveSelection();">save</button>`
-    statView.appendChild(itemView)
-    getContainer().appendChild(statView)
+    statView.appendChild(itemView);
+    getContainer().appendChild(statView);
   }
   createSavedGroupsDiv('There are no saved groups.', savedSelections);
   saveData();
@@ -46,9 +46,6 @@ function getContainer() {
 }
 
 function saveData() {
-  console.log(savedSelections);
-  console.log(JSON.stringify(savedSelections));
-  console.log('immerseData_' + boardId);
   localStorage.setItem('immerseData_' + boardId, JSON.stringify(savedSelections));
 }
 
@@ -72,20 +69,32 @@ function createSavedGroupsDiv(emptyText, data) {
   } else {
     for (let item of data) {
       let itemView = document.createElement('div')
-      let buttonId = "" + Math.random() + "-" + Math.random();
+      let resetButtonId = "" + Math.random() + "-" + Math.random();
+      let selectButtonId = "" + Math.random() + "-" + Math.random();
+      let deleteButtonId = "" + Math.random() + "-" + Math.random();
+      let deleteGroupButtonId = "" + Math.random() + "-" + Math.random();
       let inputId = "" + Math.random() + "-" + Math.random();
       itemView.className = 'stat-list__item'
       itemView.innerHTML = `
-      <div class="miro-input-group miro-input-group--medium">
-          <input id="${inputId}" type="text" class="miro-input miro-input--primary" value="${item.groupName}" placeholder="Selection Name">
-          <button id="${buttonId}" class="miro-btn miro-btn--primary">Spawn/Reset</button>
+      <div class="">
+          <input id="${inputId}" type="text" class="groupName miro-input miro-input--primary miro-input--small" value="${item.groupName}" placeholder="Selection Name">
+          <button id="${resetButtonId}" class="miro-btn miro-btn--primary miro-btn--small">Reset</button>
+          <button id="${selectButtonId}" class="miro-btn miro-btn--primary miro-btn--small">Select</button>
+          <button id="${deleteButtonId}" class="miro-btn miro-btn--primary miro-btn--small">Delete</button>
+          <button id="${deleteGroupButtonId}" class="miro-btn miro-btn--primary miro-btn--small">Delete</button>
       </div>`;
       statView.appendChild(itemView);
       document.getElementById(inputId).addEventListener('input', function(event) {
         item.groupName = event.target.value;
         saveData();
       });
-      document.getElementById(buttonId).onclick = async function() {
+      document.getElementById(selectButtonId).onclick = async function() {
+        await miro.board.selection.selectWidgets(item.widgets);
+      };
+      document.getElementById(deleteButtonId).onclick = async function() {
+        await miro.board.widgets.deleteById(item.widgets);
+      };
+      document.getElementById(resetButtonId).onclick = async function() {
         let allWidgets = await miro.board.widgets.get();
 
         let nonexistentWidgets = [];
@@ -165,7 +174,7 @@ function createSavedGroupsDiv(emptyText, data) {
 
 
 miro.onReady(() => {
-  miro.addListener('SELECTION_UPDATED', (e) => {
+  miro.addListener('SELECTION_UPDATED', async (e) => {
     let selection = {
       groupName : "MyGroup",
       widgets : e.data
