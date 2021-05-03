@@ -5,6 +5,42 @@ miro.onReady((async function() {
     loadData();
   }));
 
+async function importJson() {
+  let json = prompt("Please paste in the JSON you wish to import. This will overwrite your current saved groups.", "");
+  try {
+    let parsedJson = JSON.parse(json);
+    savedSelections = parsedJson;
+    let selectedWidgets = await miro.board.selection.get();
+    let selection = {
+      groupName : "MyGroup",
+      widgets : selectedWidgets
+    };
+    updatePanel(selection);
+  }
+  catch (e) {
+    console.log("problem importing");
+    console.log(e);
+  }
+}
+
+async function exportJson() {
+  try {
+    navigator.clipboard.writeText(JSON.stringify(savedSelections)).then(function() {
+      alert("Successfully copied JSON to clipboard");
+    }, function() {
+      alert("Something was wrong with the JSON");
+      console.log("problem copying json");
+    });
+  }
+  catch(e) {
+
+    alert("Something was wrong with the JSON");
+    console.log("problem stringifying JSON");
+    console.log(e);
+  }
+
+}
+
 async function saveSelection() {
   // When we save, we want the full data available from the API
   // not just what is returned from the selection updated system
@@ -26,7 +62,7 @@ function updatePanel(sel) {
     itemView.className = 'stat-list__item';
     itemView.innerHTML = 
       `<span class="stat-list__item-name">${sel.widgets.length} elements</span>` +
-      `<button class="stat-list__item-value miro-btn miro-btn--primary miro-btn--small" onclick="saveSelection();">save</button>`
+      `<button class="stat-list__item-value miro-btn miro-btn--primary miro-btn--small" onclick="saveSelection();"><i class="fas fa-save"></i></button>`
     statView.appendChild(itemView);
     getContainer().appendChild(statView);
   }
@@ -36,6 +72,11 @@ function updatePanel(sel) {
 
 function clear() {
   const elements = getContainer().getElementsByClassName('stat-list__table')
+  for (let i = savedSelections.length - 1; i >= 0; i--) {
+    if (savedSelections[i] === null) {
+      savedSelections.splice(i, 1);
+    }
+  }
   for (let i = elements.length - 1; i >= 0; i--) {
     elements.item(i).remove()
   }
@@ -67,21 +108,29 @@ function createSavedGroupsDiv(emptyText, data) {
     emptyView.innerText = emptyText
     statView.appendChild(emptyView)
   } else {
-    for (let item of data) {
+    for (let key in data) {
+      let item = data[key];
+      if (item === null) continue;
       let itemView = document.createElement('div')
       let resetButtonId = "" + Math.random() + "-" + Math.random();
       let selectButtonId = "" + Math.random() + "-" + Math.random();
+      let toTopButtonId = "" + Math.random() + "-" + Math.random();
+      let toBottomButtonId = "" + Math.random() + "-" + Math.random();
       let deleteButtonId = "" + Math.random() + "-" + Math.random();
       let deleteGroupButtonId = "" + Math.random() + "-" + Math.random();
       let inputId = "" + Math.random() + "-" + Math.random();
       itemView.className = 'stat-list__item'
       itemView.innerHTML = `
       <div class="">
+          <div class="miro-input-group miro-input-group--small">
           <input id="${inputId}" type="text" class="groupName miro-input miro-input--primary miro-input--small" value="${item.groupName}" placeholder="Selection Name">
-          <button id="${resetButtonId}" class="miro-btn miro-btn--primary miro-btn--small">Reset</button>
-          <button id="${selectButtonId}" class="miro-btn miro-btn--primary miro-btn--small">Select</button>
-          <button id="${deleteButtonId}" class="miro-btn miro-btn--primary miro-btn--small">Delete</button>
-          <button id="${deleteGroupButtonId}" class="miro-btn miro-btn--primary miro-btn--small">Delete</button>
+          <button id="${deleteGroupButtonId}" class="miro-btn miro-btn--primary miro-btn--small"><i class="fas fa-folder-minus"></i></button>
+        </div>
+          <button id="${resetButtonId}" class="miro-btn miro-btn--primary miro-btn--small"><i class="fas fa-sync"></i></button>
+          <button id="${selectButtonId}" class="miro-btn miro-btn--primary miro-btn--small"><i class="fas fa-mouse-pointer"></i></button>
+          <button id="${deleteButtonId}" class="miro-btn miro-btn--primary miro-btn--small"><i class="fas fa-trash-alt"></i></button>
+          <button id="${toTopButtonId}" class="miro-btn miro-btn--primary miro-btn--small"><i class="fas fa-arrow-up"></i></button>
+          <button id="${toBottomButtonId}" class="miro-btn miro-btn--primary miro-btn--small"><i class="fas fa-arrow-down"></i></button>
       </div>`;
       statView.appendChild(itemView);
       document.getElementById(inputId).addEventListener('input', function(event) {
@@ -93,6 +142,27 @@ function createSavedGroupsDiv(emptyText, data) {
       };
       document.getElementById(deleteButtonId).onclick = async function() {
         await miro.board.widgets.deleteById(item.widgets);
+      };
+      document.getElementById(toTopButtonId).onclick = async function() {
+        for(let widget of item.widgets) {
+          miro.board.widgets.bringForward(widget);
+        }
+      };
+      document.getElementById(toBottomButtonId).onclick = async function() {
+        for(let widget of item.widgets) {
+          miro.board.widgets.sendBackward(widget);
+        }
+      };
+      document.getElementById(deleteGroupButtonId).onclick = async function() {
+        delete data[key];
+        // When we save, we want the full data available from the API
+        // not just what is returned from the selection updated system
+        let selectedWidgets = await miro.board.selection.get();
+        let selection = {
+          groupName : "MyGroup",
+          widgets : selectedWidgets
+        };
+        updatePanel(selection);
       };
       document.getElementById(resetButtonId).onclick = async function() {
         let allWidgets = await miro.board.widgets.get();

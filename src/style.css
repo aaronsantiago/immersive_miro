@@ -28,6 +28,7 @@ select {
 
 .miro-btn--small {
   min-width: 0px;
+  margin: 5px;
 }
 .miro-btn:not(.ng-hide) + .miro-btn--small:not(.miro-btn--pull-right) {
     margin-left: 0px;
