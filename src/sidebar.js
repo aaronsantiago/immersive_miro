@@ -18,6 +18,7 @@ async function importJson() {
     updatePanel(selection);
   }
   catch (e) {
+    alert("There was a problem parsing the JSON! Check the console for more information.");
     console.log("problem importing");
     console.log(e);
   }
