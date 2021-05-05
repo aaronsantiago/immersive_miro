@@ -256,18 +256,13 @@ function matchWidgetsToSavedWidgets(widgets, i) {
     for (let newWidget of widgets) {
       let foundMatch = null;
       for (let savedWidget of item.widgets) {
-        if (!newWidget.metadata[appId])
-          continue;
-        if (savedWidget.metadata[appId].persistentId != newWidget.metadata[appId].persistentId)
+        if (!checkPersistentIdMatch(newWidget, savedWidget))
           continue;
         foundMatch = savedWidget;
         break;
       }
       if (foundMatch != null) {
         foundMatch.id = newWidget.id;
-      }
-      else {
-        console.log("match not found!", newWidget);
       }
     }
   }
