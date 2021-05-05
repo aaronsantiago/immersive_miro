@@ -186,6 +186,8 @@ function createSavedGroupsDiv(emptyText, data) {
         }
         // if there are some missing widgets, lets spawn them
         if (nonexistentWidgets.length > 0) {
+          let matchedWidgets = [];
+
           let res = await miro.board.widgets.create(nonexistentWidgets);
           // we have to match the widgets from the spawned ones
           // to the ones we have saved (for the reset function to work later)
@@ -214,10 +216,17 @@ function createSavedGroupsDiv(emptyText, data) {
               if (Math.abs(newWidget.scale - savedWidget.scale) > .01) {
                 continue;
               }
+              // deal with cases of stacked, identical widgets
+              if (matchedWidgets.includes(savedWidget.id)) {
+                continue;
+              }
+              // the widget's ID is going to be overwritten, so store
+              // the new one so we don't match this against a different
+              // widget
+              matchedWidgets.push(newWidget.id);
               foundMatch = savedWidget;
               break;
             }
-            // lets copy the new values to our saved widget
             if (foundMatch != null) {
               Object.assign(foundMatch, newWidget);
             }
