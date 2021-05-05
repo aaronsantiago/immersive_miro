@@ -64,9 +64,11 @@ async function saveSelection() {
   updatePanel(selection);
 }
 
-function updatePanel(sel) {
+async function updatePanel(sel) {
   clear();
-  if (sel.widgets.length > 0) {
+  if (document.getElementById("editGroupsCheckbox").checked) {
+    document.getElementById("importexport").style.display = "initial";
+    if (!sel) sel = {groupName: "MyGroup", widgets: await miro.board.selection.get()};
     const statView = document.createElement('div')
     statView.className = 'stat-list__table'
     let itemView = document.createElement('div')
@@ -76,6 +78,9 @@ function updatePanel(sel) {
       `<button class="stat-list__item-value miro-btn miro-btn--primary miro-btn--small" onclick="saveSelection();"><i class="fas fa-save"></i></button>`
     statView.appendChild(itemView);
     getContainer().appendChild(statView);
+  }
+  else {
+    document.getElementById("importexport").style.display = "none";
   }
   createSavedGroupsDiv('There are no saved groups.', savedSelections);
   saveData();
@@ -130,13 +135,22 @@ function createSavedGroupsDiv(emptyText, data) {
       let deleteButtonId = "" + Math.random() + "-" + Math.random();
       let deleteGroupButtonId = "" + Math.random() + "-" + Math.random();
       let inputId = "" + Math.random() + "-" + Math.random();
+
+      let editMode = document.getElementById("editGroupsCheckbox").checked;
       itemView.className = 'stat-list__item'
       itemView.innerHTML = `
-      <div class="">
+      <div class="">`;
+      if (editMode) {
+        itemView.innerHTML += `
           <div class="miro-input-group miro-input-group--small">
-          <input id="${inputId}" type="text" class="groupName miro-input miro-input--primary miro-input--small" value="${item.groupName}" placeholder="Selection Name">
-          <button id="${deleteGroupButtonId}" class="miro-btn miro-btn--primary miro-btn--small"><i class="fas fa-folder-minus"></i></button>
-        </div>
+            <input id="${inputId}" type="text" class="groupName miro-input miro-input--primary miro-input--small" value="${item.groupName}" placeholder="Selection Name">
+            <button id="${deleteGroupButtonId}" class="miro-btn miro-btn--primary miro-btn--small"><i class="fas fa-folder-minus"></i></button>
+          </div>`
+      }
+      else {
+        itemView.innerHTML += `<div>${item.groupName}</div>`
+      }
+      itemView.innerHTML += `
           <button id="${resetButtonId}" class="miro-btn miro-btn--primary miro-btn--small"><i class="fas fa-sync"></i></button>
           <button id="${selectButtonId}" class="miro-btn miro-btn--primary miro-btn--small"><i class="fas fa-mouse-pointer"></i></button>
           <button id="${deleteButtonId}" class="miro-btn miro-btn--primary miro-btn--small"><i class="fas fa-trash-alt"></i></button>
@@ -144,10 +158,24 @@ function createSavedGroupsDiv(emptyText, data) {
           <button id="${toBottomButtonId}" class="miro-btn miro-btn--primary miro-btn--small"><i class="fas fa-arrow-down"></i></button>
       </div>`;
       statView.appendChild(itemView);
-      document.getElementById(inputId).addEventListener('input', function(event) {
-        item.groupName = event.target.value;
-        saveData();
-      });
+      if (editMode) {
+        document.getElementById(inputId).addEventListener('input', function(event) {
+          item.groupName = event.target.value;
+          saveData();
+        });
+        document.getElementById(deleteGroupButtonId).onclick = async function() {
+          validatePersistentIds(item);
+          delete data[key];
+          // When we save, we want the full data available from the API
+          // not just what is returned from the selection updated system
+          let selectedWidgets = await miro.board.selection.get();
+          let selection = {
+            groupName : "MyGroup",
+            widgets : selectedWidgets
+          };
+          updatePanel(selection);
+        };
+      }
       document.getElementById(selectButtonId).onclick = async function() {
         validatePersistentIds(item);
         await miro.board.selection.selectWidgets(item.widgets);
@@ -167,18 +195,6 @@ function createSavedGroupsDiv(emptyText, data) {
         for(let widget of item.widgets) {
           miro.board.widgets.sendBackward(widget);
         }
-      };
-      document.getElementById(deleteGroupButtonId).onclick = async function() {
-        validatePersistentIds(item);
-        delete data[key];
-        // When we save, we want the full data available from the API
-        // not just what is returned from the selection updated system
-        let selectedWidgets = await miro.board.selection.get();
-        let selection = {
-          groupName : "MyGroup",
-          widgets : selectedWidgets
-        };
-        updatePanel(selection);
       };
       document.getElementById(resetButtonId).onclick = async function() {
         let allWidgets = await miro.board.widgets.get();

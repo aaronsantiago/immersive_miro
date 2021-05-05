@@ -1,19 +1,26 @@
-<html>
-  <head>
-    <title>Miro Widget Group Manager</title>
-    <script src="https://kit.fontawesome.com/288f59734b.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://miro.com/app/static/styles.1.0.css"/>
-    <link rel="stylesheet" href="src/style.css" />
-  </head>
-  <body>
-    <div class="sidebar__content">
-      <div id="stat-container" class="stat-list">
-        <div class="stat-list__header">Group Manager</div>
-    <button onclick="exportJson();">Export JSON</button>
-    <button onclick="importJson();">Import JSON</button>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>Miro Widget Group Manager</title>
+  <script src="https://kit.fontawesome.com/288f59734b.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://miro.com/app/static/styles.1.0.css" />
+  <link rel="stylesheet" href="src/style.css" />
+</head>
+<body>
+  <div class="sidebar__content">
+    <div id="stat-container" class="stat-list">
+      <div class="stat-list__header">
+        Group Manager
+      </div>
+      <div id="editToggle">
+        <label class="miro-toggle"><input id="editGroupsCheckbox" type="checkbox" onclick="updatePanel()"/> <span>Edit Groups</span></label>
+      </div>
+      <div id="importexport">
+        <button onclick="exportJson();">Export JSON</button> <button onclick="importJson();">Import JSON</button>
       </div>
     </div>
-    <script src="https://miro.com/app/static/sdk.1.1.js"></script>
-    <script src="src/sidebar.js"></script>
-  </body>
+  </div>
+  <script src="https://miro.com/app/static/sdk.1.1.js"></script> 
+  <script src="src/sidebar.js"></script>
+</body>
 </html>
