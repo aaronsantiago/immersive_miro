@@ -227,8 +227,10 @@ function createSavedGroupsDiv(emptyText, data) {
               foundMatch = savedWidget;
               break;
             }
+            // lets copy the new values to our saved widget, and any other
+            // widgets using the old ID
             if (foundMatch != null) {
-              Object.assign(foundMatch, newWidget);
+              overwriteMatches(foundMatch.id, newWidget);
             }
             else {
               console.log("match not found!", savedWidget);
@@ -250,6 +252,17 @@ function createSavedGroupsDiv(emptyText, data) {
     }
   }
   return statView;
+}
+
+function overwriteMatches(id, newWidget) {
+  for (let item of savedSelections) {
+    if (!item) continue;
+    for (let widget of item.widgets) {
+      if (widget.id == id) {
+        widget.id = newWidget.id;
+      }
+    }
+  }
 }
 
 
