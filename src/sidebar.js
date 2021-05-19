@@ -20,7 +20,7 @@ async function importJson() {
     updatePanel(selection);
   }
   catch (e) {
-    alert("There was a problem parsing the JSON! Check the console for more information.");
+    alert("There was a problem parsing the JSON! " + e.name + ': ' + e.message);
     console.log("problem importing");
     console.log(e);
   }
@@ -30,14 +30,14 @@ async function exportJson() {
   try {
     navigator.clipboard.writeText(JSON.stringify(savedSelections)).then(function() {
       alert("Successfully copied JSON to clipboard");
-    }, function() {
-      alert("Something was wrong with the JSON");
+    }, function(e) {
+      alert("Something was wrong with the JSON " + e.name + ': ' + e.message);
       console.log("problem copying json");
     });
   }
   catch(e) {
 
-    alert("Something was wrong with the JSON");
+    alert("Something was wrong with the JSON "  + e.name + ': ' + e.message);
     console.log("problem stringifying JSON");
     console.log(e);
   }
