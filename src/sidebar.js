@@ -44,7 +44,7 @@ async function exportJson() {
     let d = new Date();
     download(
       "SavedGroups_"
-      d.toJSON().slice(0,10) + "_"
+        + d.toJSON().slice(0,10) + "_"
         + ("00" + (new Date()).getHours()).slice(-2)
         + ("00" + (new Date()).getMinutes()).slice(-2) + ".txt"
     , JSON.stringify(savedSelections));
