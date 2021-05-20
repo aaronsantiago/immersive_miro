@@ -26,17 +26,29 @@ async function importJson() {
   }
 }
 
+function download(filename, text) {
+  var element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+  element.setAttribute('download', filename);
+
+  element.style.display = 'none';
+  document.body.appendChild(element);
+
+  element.click();
+
+  document.body.removeChild(element);
+}
+
 async function exportJson() {
   try {
-    navigator.clipboard.writeText(JSON.stringify(savedSelections)).then(function() {
-      alert("Successfully copied JSON to clipboard");
-    }, function(e) {
-      alert("Something was wrong with the JSON " + e.name + ': ' + e.message);
-      console.log("problem copying json");
-    });
+    let d = new Date();
+    download(
+      d.toJSON().slice(0,15) + "_"
+        + ("00" + (new Date()).getHours()).slice(-2) + "-"
+        + ("00" + (new Date()).getMinutes()).slice(-2) + ".json"
+    , JSON.stringify(savedSelections));
   }
   catch(e) {
-
     alert("Something was wrong with the JSON "  + e.name + ': ' + e.message);
     console.log("problem stringifying JSON");
     console.log(e);
